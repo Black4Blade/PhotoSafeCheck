@@ -108,6 +108,9 @@ jobs:
       - name: Test packaging (no user data, executable permissions)
         run: python scripts/test_build_packaging.py
 
+      - name: Test Windows GUI subsystem verification
+        run: python scripts/test_windows_gui_subsystem.py
+
       - name: Restore app dependencies
         run: dotnet restore PhotoSafeCheck/PhotoSafeCheck.csproj
 

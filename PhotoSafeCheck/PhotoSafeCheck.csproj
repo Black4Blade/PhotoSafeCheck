@@ -1,7 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- Preview diagnostics: keep console output visible on Windows. -->
+    <!-- Keep console diagnostics for normal development (dotnet run).
+         Windows win-x64 Release publishes use the GUI subsystem so launching
+         PhotoSafeCheck.exe does not open a console window. -->
     <OutputType>Exe</OutputType>
+    <OutputType Condition="'$(Configuration)' == 'Release' and '$(RuntimeIdentifier)' == 'win-x64'">WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
