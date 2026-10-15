@@ -54,7 +54,7 @@ internal static class StoragePaths
         }
         return false;
     }
-    internal static StorageMode SuggestedMode => File.Exists(MarkerFile) ? StorageMode.Portable : StorageMode.Local;
+    internal static StorageMode SuggestedMode => StorageMode.Portable; // Single-executable download defaults to a portable suggestion; user can choose Local.
     private static StorageMode? Parse(string? s) => s?.ToLowerInvariant() switch
     {
         "portable" => StorageMode.Portable, "local" => StorageMode.Local, _ => null

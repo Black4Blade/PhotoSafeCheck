@@ -8,6 +8,6 @@ BUNDLE="out/PhotoSafeCheck-$RID-portable"
 if [[ -e "$PUBLISH" || -e "$BUNDLE" ]]; then
  echo "Refusing to overwrite an existing build directory. Use a fresh output location." >&2; exit 1
 fi
-dotnet publish PhotoSafeCheck/PhotoSafeCheck.csproj -c Release -r "$RID" --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o "$PUBLISH"
+dotnet publish PhotoSafeCheck/PhotoSafeCheck.csproj -c Release -r "$RID" --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:DebugSymbols=false -o "$PUBLISH"
 python3 scripts/package_preview.py --publish "$PUBLISH" --dest "$BUNDLE" --rid "$RID"
 echo "Portable bundle ready: $BUNDLE"

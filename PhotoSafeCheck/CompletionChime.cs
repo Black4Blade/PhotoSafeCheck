@@ -3,42 +3,60 @@ using System.Runtime.InteropServices;
 
 namespace PhotoSafeCheck;
 
-// Only plays the packaged notification sound. Does not touch user media files.
+/// <summary>Plays the embedded completion chime; never reads or changes user media.</summary>
 internal static class CompletionChime
 {
-    [DllImport("winmm.dll", EntryPoint = "PlaySoundW", CharSet = CharSet.Unicode)]
-    private static extern bool PlaySoundWindows(string sound, IntPtr module, uint flags);
+    private const uint SndMemory = 0x0004;
+    private const uint SndNoDefault = 0x0002;
+
+    [DllImport("winmm.dll", EntryPoint = "PlaySoundW", ExactSpelling = true)]
+    private static extern bool PlaySoundMemory(byte[] sound, IntPtr module, uint flags);
 
     public static void Play()
     {
-        var sound = Path.Combine(AppContext.BaseDirectory, "Assets", "complete.wav");
-        if (!File.Exists(sound)) return;
-        try
+        // Schedule playback: never block the UI or the end-of-scan notification.
+        _ = Task.Run(async () =>
         {
-            if (OperatingSystem.IsWindows())
+            try
             {
-                // SND_ASYNC | SND_NODEFAULT | SND_FILENAME, no user file modification.
-                PlaySoundWindows(sound, IntPtr.Zero, 0x0001u | 0x0002u | 0x00020000u);
+                using var resource = BundledAssets.Open("complete.wav");
+                if (resource is null) return;
+                if (OperatingSystem.IsWindows())
+                {
+                    using var memory = new MemoryStream();
+                    await resource.CopyToAsync(memory);
+                    // SND_MEMORY doesn't support SND_ASYNC; playing synchronously on a worker is safe.
+                    PlaySoundMemory(memory.ToArray(), IntPtr.Zero, SndMemory | SndNoDefault);
+                    return;
+                }
+                if (!OperatingSystem.IsMacOS() && !OperatingSystem.IsLinux()) return;
+                // macOS/Linux audio utilities accept filenames. Use an app-owned temporary
+                // file and remove it once playback exits; it is never placed beside the EXE.
+                var folder = Path.Combine(StoragePaths.DataDirectory, "TempAudio");
+                Directory.CreateDirectory(folder);
+                var file = Path.Combine(folder, $"chime-{Guid.NewGuid():N}.wav");
+                try
+                {
+                    await using (var output = File.Create(file)) await resource.CopyToAsync(output);
+                    if (OperatingSystem.IsMacOS()) await RunPlayer("afplay", file);
+                    else if (!await RunPlayer("paplay", file)) await RunPlayer("aplay", file);
+                }
+                finally { try { File.Delete(file); } catch { } }
             }
-            else if (OperatingSystem.IsMacOS())
-                Launch("afplay", sound);
-            else if (OperatingSystem.IsLinux())
-            {
-                if (!Launch("paplay", sound)) Launch("aplay", sound);
-            }
-        }
-        catch { /* Audio is optional, never interrupt scan/reporting. */ }
+            catch { /* Optional audio must never impact scan results. */ }
+        });
     }
 
-    private static bool Launch(string command, string file)
+    private static async Task<bool> RunPlayer(string command, string file)
     {
         try
         {
-            var args = new ProcessStartInfo(command) { UseShellExecute = false,
-                CreateNoWindow = true };
-            args.ArgumentList.Add(file);
-            using var process = Process.Start(args);
-            return process != null;
+            var start = new ProcessStartInfo(command) { UseShellExecute = false, CreateNoWindow = true };
+            start.ArgumentList.Add(file);
+            using var proc = Process.Start(start);
+            if (proc is null) return false;
+            await proc.WaitForExitAsync();
+            return proc.ExitCode == 0;
         }
         catch { return false; }
     }

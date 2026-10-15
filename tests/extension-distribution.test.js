@@ -9,16 +9,17 @@ const csproj = fs.readFileSync('PhotoSafeCheck/PhotoSafeCheck.csproj','utf8');
 const linkCode = fs.readFileSync('PhotoSafeCheck/ExtensionDistributionLinks.cs','utf8');
 const pack = fs.readFileSync('scripts/package_preview.py','utf8');
 test('app offers two distinct extension installation options and local fallback', () => {
-  for (const label of ['Get from Chrome Web Store', 'Download from GitHub Releases', 'Open included extension folder'])
+  for (const label of ['Get from Chrome Web Store', 'Download from GitHub Releases', 'Open extension folder (source builds)'])
     assert.ok(ui.includes(label), label);
   assert.ok(ui.includes('HasChromeWebStore') && ui.includes('HasGitHubReleases'));
   assert.ok(ui.includes('Load unpacked'));
 });
-test('unpublished links start disabled, and config ships with portable build', () => {
+test('unpublished links are disabled in source and built-in defaults are embedded', () => {
   assert.equal(config.chromeWebStoreUrl,'');
   assert.equal(config.githubReleasesUrl,'');
-  assert.match(csproj,/ExtensionLinks.json.*CopyToOutputDirectory/);
-  assert.match(pack,/EXTENSION_DISTRIBUTION.md/);
+  assert.match(csproj,/EmbeddedResource Include="ExtensionLinks.json"/);
+  assert.match(pack,/shutil.copy2\(source, target\)/);
+  assert.match(linkCode,/BundledAssets.OpenLinks/);
 });
 test('link validator restricts to HTTPS known distribution locations', () => {
   assert.match(linkCode,/UriSchemeHttps/);

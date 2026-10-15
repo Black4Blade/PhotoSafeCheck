@@ -18,9 +18,9 @@ test('portable settings and logs share the same data directory', () => {
 test('no Playwright dependency is reintroduced', () => {
   assert.doesNotMatch(read('PhotoSafeCheck.csproj'), /PackageReference Include="Microsoft\.Playwright"/);
 });
-test('distribution refuses to include populated private Data folders', () => {
+test('distribution only stages an executable without any private state', () => {
   const packager = fs.readFileSync(path.join(__dirname, '..', 'scripts', 'package_preview.py'), 'utf8');
-  assert.match(packager, /args\.publish \/ 'Data'/);
-  assert.match(packager, /portable\.mode/);
-  assert.match(packager, /PORTABLE_GUIDE\.md/);
+  assert.match(packager, /shutil\.copy2\(source, target\)/);
+  assert.doesNotMatch(packager, /shutil\.copytree/);
+  assert.doesNotMatch(packager, /portable\.mode/);
 });

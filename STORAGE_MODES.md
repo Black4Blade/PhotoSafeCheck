@@ -4,7 +4,7 @@ On the **first launch**, PhotoSafe Check asks which mode to use. This choice aff
 
 | | Portable | Local |
 |---|---|---|
-| Scan history, settings, browser pairing | `App/Data/` beside executable | OS application-data folder (`%LOCALAPPDATA%/PhotoSafeCheck` on Windows) |
+| Scan history, settings, browser pairing | `Data/` beside the executable beside executable | OS application-data folder (`%LOCALAPPDATA%/PhotoSafeCheck` on Windows) |
 | Startup logs | `App/Data/logs/startup.log` | `PhotoSafeCheck/logs/startup.log` in app data |
 | Requires writable app folder | Yes | No |
 | Suitable for removable/USB folder | Yes | Usually no |

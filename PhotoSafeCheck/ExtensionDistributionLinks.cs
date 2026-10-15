@@ -26,9 +26,14 @@ public sealed class ExtensionDistributionLinks
         try
         {
             var file = Path.Combine(AppContext.BaseDirectory, "ExtensionLinks.json");
-            if (!File.Exists(file)) return new ExtensionDistributionLinks();
-            var parsed = JsonSerializer.Deserialize<ExtensionDistributionLinks>(File.ReadAllText(file));
-            return parsed ?? new ExtensionDistributionLinks();
+            // Optional adjacent config overrides built-in defaults without rebuilding.
+            if (File.Exists(file))
+                return JsonSerializer.Deserialize<ExtensionDistributionLinks>(File.ReadAllText(file))
+                       ?? new ExtensionDistributionLinks();
+            using var packaged = BundledAssets.OpenLinks();
+            return packaged is null ? new ExtensionDistributionLinks()
+                : JsonSerializer.Deserialize<ExtensionDistributionLinks>(packaged)
+                  ?? new ExtensionDistributionLinks();
         }
         catch (Exception ex)
         {

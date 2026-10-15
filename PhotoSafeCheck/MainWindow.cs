@@ -82,8 +82,8 @@ public sealed class MainWindow : Window
         Title = "PhotoSafe Check  ·  v0.3.6 Friendly Preview";
         try
         {
-            var iconFile = Path.Combine(AppContext.BaseDirectory, "Assets", "photosafe.ico");
-            if (File.Exists(iconFile)) Icon = new WindowIcon(iconFile);
+            using var iconStream = BundledAssets.Open("photosafe.ico");
+            if (iconStream is not null) Icon = new WindowIcon(iconStream);
         }
         catch (Exception ex) { StartupDiagnostics.Log("App icon unavailable: " + ex.Message); }
         Width = 1250; Height = 860; MinWidth = 960; MinHeight = 680;
@@ -99,8 +99,8 @@ public sealed class MainWindow : Window
         var branding = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
         try
         {
-            var logoFile = Path.Combine(AppContext.BaseDirectory, "Assets", "photosafe.png");
-            if (File.Exists(logoFile)) branding.Children.Add(new Image { Source = new Bitmap(logoFile), Width = 52, Height = 52 });
+            using var logoStream = BundledAssets.Open("photosafe.png");
+            if (logoStream is not null) branding.Children.Add(new Image { Source = new Bitmap(logoStream), Width = 52, Height = 52 });
         }
         catch (Exception ex) { StartupDiagnostics.Log("Sidebar logo unavailable: " + ex.Message); }
         branding.Children.Add(new TextBlock { Text = "PHOTO / SAFE", FontSize = 21,
@@ -121,7 +121,7 @@ public sealed class MainWindow : Window
             "PhotoSafe Check never deletes, moves, edits or overwrites original photos. Staging creates new copies only."));
         sidebar.Children.Add(Txt("v0.3.6 · Friendly preview", 11, B("#8297B1")));
         sidebar.Children.Add(Txt(StoragePaths.IsPortable
-            ? "Portable mode · progress in App/Data"
+            ? "Portable mode · progress in Data next to the app"
             : "Local mode · progress in application data",
             11, B("#8297B1")));
         var sidebarBorder = new Border { Background = B("#172338"), Child = sidebar,
@@ -178,7 +178,7 @@ public sealed class MainWindow : Window
         if (!extensionDownloadLinks.HasChromeWebStore || !extensionDownloadLinks.HasGitHubReleases)
             browserPanel.Children.Add(Txt("Download links will activate after publication. The included extension can still be loaded manually.",
                 11, B("#F5C78C")));
-        browserPanel.Children.Add(Action("Open included extension folder", OpenBundledExtensionFolder));
+        browserPanel.Children.Add(Action("Open extension folder (source builds)", OpenBundledExtensionFolder));
         browserPanel.Children.Add(new Border { Height = 1, Background = B("#34475A"), Margin = new Thickness(0, 2) });
         browserPanel.Children.Add(Txt("Already installed? Connect it to the desktop app:", 12, Subtle));
         var browserButtons = new WrapPanel();
@@ -452,7 +452,7 @@ public sealed class MainWindow : Window
         var folder = candidates.FirstOrDefault(Directory.Exists);
         if (folder is null)
         {
-            info.Text = "Included extension folder not found. Extract the full portable ZIP next to the App folder, or use one of the download links.";
+            info.Text = "The standalone app does not include the browser extension. Install it from the Chrome Web Store or the separate GitHub Releases extension ZIP.";
             return;
         }
         try { Process.Start(new ProcessStartInfo(folder) { UseShellExecute = true }); }
