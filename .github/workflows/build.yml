@@ -1,52 +1,169 @@
-name: Cross-platform preview builds
+name: Build PhotoSafe Check
+
 on:
   push:
+    branches: [main, master]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      platform:
+        description: Which platform(s) to build?
+        type: choice
+        required: true
+        default: all
+        options:
+          - all
+          - windows
+          - linux
+          - macos
+
+# Build jobs only read the repository. Only the draft-release job can create a release.
+permissions:
+  contents: read
 
 jobs:
-  validate-and-package:
+  select-targets:
+    name: Select build targets
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.targets.outputs.matrix }}
+    steps:
+      - name: Set build matrix
+        id: targets
+        shell: bash
+        env:
+          PLATFORM: ${{ inputs.platform || 'all' }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          all_targets = [
+              {"platform": "windows", "os": "windows-latest", "rid": "win-x64"},
+              {"platform": "linux", "os": "ubuntu-latest", "rid": "linux-x64"},
+              {"platform": "macos", "os": "macos-15-intel", "rid": "osx-x64"},
+              {"platform": "macos", "os": "macos-latest", "rid": "osx-arm64"},
+          ]
+          choice = os.environ['PLATFORM']
+          selected = [x for x in all_targets if choice == 'all' or x['platform'] == choice]
+          if not selected:
+              raise SystemExit(f'No build targets for {choice}')
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+              output.write('matrix=' + json.dumps({'include': selected}, separators=(',', ':')) + '\n')
+          print('Building:', ', '.join(x['rid'] for x in selected))
+          PY
+
+  build:
+    name: ${{ matrix.rid }} portable build
+    needs: select-targets
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            rid: win-x64
-          - os: ubuntu-latest
-            rid: linux-x64
-          - os: macos-latest
-            rid: osx-arm64
-          - os: macos-latest
-            rid: osx-x64
-    runs-on: ${{ matrix.os }}
+      matrix: ${{ fromJSON(needs.select-targets.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install .NET 10 SDK
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - uses: actions/setup-node@v4
+
+      - name: Install Node.js (extension tests)
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Test browser extension logic
-        run: node --test tests/*.test.js
-      - name: Build app
-        run: dotnet build PhotoSafeCheck/PhotoSafeCheck.csproj --configuration Release
-      - name: Create self-contained preview app
-        run: dotnet publish PhotoSafeCheck/PhotoSafeCheck.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o out/app
-      - name: Bundle companion and instructions
-        run: python scripts/package_preview.py --publish out/app --dest out/preview --rid ${{ matrix.rid }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: PhotoSafeCheck-v0.3.5-${{ matrix.rid }}-preview
-          path: out/preview/
-          if-no-files-found: error
 
-      - name: Package extension for Chrome Web Store and GitHub Releases
-        if: matrix.rid == 'win-x64'
-        run: python scripts/package_extension.py --dest out/PhotoSafeCheck-extension-v0.3.4.zip
-      - uses: actions/upload-artifact@v4
-        if: matrix.rid == 'win-x64'
+      - name: Install Python (packaging)
+        uses: actions/setup-python@v5
         with:
-          name: PhotoSafeCheck-extension-v0.3.4-store-upload
-          path: out/PhotoSafeCheck-extension-v0.3.4.zip
+          python-version: '3.12'
+
+      - name: Test browser extension
+        run: node --test
+
+      - name: Test packaging (no user data, executable permissions)
+        run: python scripts/test_build_packaging.py
+
+      - name: Restore app dependencies
+        run: dotnet restore PhotoSafeCheck/PhotoSafeCheck.csproj
+
+      - name: Compile desktop application
+        run: dotnet build PhotoSafeCheck/PhotoSafeCheck.csproj --configuration Release --no-restore
+
+      - name: Publish self-contained app
+        run: >-
+          dotnet publish PhotoSafeCheck/PhotoSafeCheck.csproj
+          --configuration Release
+          --runtime ${{ matrix.rid }}
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          --output out/publish
+
+      - name: Bundle app, extension, and guides
+        run: >-
+          python scripts/package_preview.py
+          --publish out/publish
+          --dest out/bundle
+          --rid ${{ matrix.rid }}
+
+      - name: Make platform download archive
+        run: >-
+          python scripts/archive_release.py
+          --bundle out/bundle
+          --output out/dist
+          --rid ${{ matrix.rid }}
+
+      - name: Upload downloadable portable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoSafeCheck-${{ matrix.rid }}-portable
+          path: out/dist/*
           if-no-files-found: error
+          retention-days: 30
+
+      - name: Package browser extension
+        if: matrix.rid == 'win-x64'
+        run: python scripts/package_extension.py --dest out/extension/PhotoSafeCheck-extension.zip
+
+      - name: Upload browser extension
+        if: matrix.rid == 'win-x64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhotoSafeCheck-browser-extension
+          path: out/extension/PhotoSafeCheck-extension.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  draft-release:
+    name: Prepare GitHub draft release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download platform build archives
+        uses: actions/download-artifact@v4
+        with:
+          pattern: PhotoSafeCheck-*-portable
+          merge-multiple: true
+          path: out/release
+
+      - name: Download extension archive
+        uses: actions/download-artifact@v4
+        with:
+          name: PhotoSafeCheck-browser-extension
+          path: out/release
+
+      - name: Create draft release (manual review required)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" out/release/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --draft \
+            --generate-notes \
+            --title "PhotoSafe Check $GITHUB_REF_NAME"
