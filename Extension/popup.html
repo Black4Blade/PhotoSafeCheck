@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PhotoSafe Check Companion</title>
+<style>
+:root{color-scheme:dark;--bg:#101725;--panel:#1b2a40;--border:#30475d;--text:#f4f7fc;--muted:#b4c3d5;--accent:#7ce5cb}
+*{box-sizing:border-box}body{margin:0;width:360px;background:var(--bg);color:var(--text);font:13px/1.48 system-ui,Segoe UI,sans-serif;padding:20px}
+.brand{display:flex;align-items:center;gap:11px;margin:0 0 15px}.app-logo{border-radius:12px;flex:none}.mark{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:#214a46;border:1px solid #4b9589;font-weight:900;font-size:19px;color:var(--accent)}
+h1{font-size:19px;margin:0;font-weight:750}.subtitle{font-size:11px;color:var(--muted)}p{color:var(--muted);margin:6px 0 12px;line-height:1.5}
+.panel{border:1px solid var(--border);background:var(--panel);border-radius:12px;padding:13px;margin:12px 0}
+label{display:block;margin-bottom:6px;color:#d2deed;font-size:12px;font-weight:650}
+input{width:100%;background:#101d30;color:white;border:1px solid #4d6279;border-radius:8px;padding:10px 11px;font:inherit;outline-offset:2px}
+input:focus{outline:2px solid var(--accent)}
+button{background:var(--accent);border:0;color:#0d2f2a;font-weight:750;padding:10px 13px;border-radius:9px;cursor:pointer;min-height:36px}
+button:hover{filter:brightness(1.08)}button.secondary{background:#344b65;color:#f6faff}button:disabled{opacity:.43;cursor:not-allowed}
+.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.notice{background:#142438;padding:11px;border-radius:9px;margin:10px 0 0;line-height:1.6;overflow-wrap:anywhere;white-space:pre-line;color:#c8ebea;font-size:12px}
+.small{font-size:11px;color:#a5b9cf;margin-top:10px}.label{font-size:11px;font-weight:800;letter-spacing:.1em;color:#96b4c9}
+progress{width:100%;height:10px;accent-color:var(--accent);margin-top:8px}#meterHint{font-size:11px;color:var(--muted)}
+.footnote{border-top:1px solid var(--border);padding-top:12px;margin-top:15px}
+.connection-box{border:1px solid #65778c;border-radius:12px;padding:12px 13px;background:#16253a;margin:0 0 13px}
+.connection-title{font-weight:750;font-size:14px;display:flex;align-items:center;gap:8px}
+.connection-title::before{content:'●';font-size:17px;color:#bac5d2}
+.connection-box[data-state="online"]{border-color:#3d957b;background:#13352f}
+.connection-box[data-state="online"] .connection-title::before{color:#80e5bf}
+.connection-box[data-state="offline"]{border-color:#a95454;background:#39202b}
+.connection-box[data-state="offline"] .connection-title::before{color:#ff9898}
+.connection-box[data-state="pairing"] .connection-title::before{color:#f5c47a}
+.connection-help{font-size:12px;color:#c5d5e6;margin-top:6px;line-height:1.5}
+#retryConnection{margin-top:10px}
+</style>
+</head>
+<body>
+<header class="brand"><img class="app-logo" src="icons/icon48.png" width="46" height="46" alt="PhotoSafe Check logo"><div><h1>PhotoSafe Check</h1><div class="subtitle">Your gentle Google Photos companion</div></div></header>
+<section class="connection-box" id="connectionBox" data-state="pairing" aria-live="polite">
+  <div id="connectionTitle" class="connection-title">Checking desktop connection…</div>
+  <div id="connectionHelp" class="connection-help">Keep the desktop application running and the extension paired.</div>
+  <button id="retryConnection" class="secondary">Check connection again</button>
+</section>
+<div class="panel"><div class="label">STEP 1 · PAIR DESKTOP APP</div>
+<p>Copy the key from the desktop app. You sign into Google only through your normal browser.</p>
+<label for="pairing">Private pairing key</label>
+<input id="pairing" type="password" autocomplete="off" spellcheck="false" placeholder="Paste 48-character key">
+<div class="actions"><button id="connect">Connect to desktop</button></div></div>
+<div class="panel"><div class="label">STEP 2 · START IN THIS TAB</div>
+<div class="actions"><button id="activate" disabled>Use this Photos tab</button><button id="pause" class="secondary">Pause extension</button></div>
+<div id="progressArea" hidden><progress id="meter" value="0" max="100"></progress><div id="meterHint">Waiting for scan</div></div>
+<div id="status" class="notice" role="status" aria-live="polite">Not connected.</div>
+<div class="actions"><button id="diagnostics" class="secondary" disabled>Copy page diagnostics</button></div></div>
+<p class="small">Diagnostics include page-layout counts only, not photo names, account information, or image bytes.</p>
+<div class="footnote small">Keep the Google Photos tab and desktop app open while scanning. A search hit is only a <strong>possible match</strong>, not proof of backup. The app never deletes your photos.</div>
+<script src="popup.js"></script>
+</body>
+</html>

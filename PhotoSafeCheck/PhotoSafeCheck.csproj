@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- Preview diagnostics: keep console output visible on Windows. -->
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <AssemblyName>PhotoSafeCheck</AssemblyName>
+    <ApplicationIcon>Assets/photosafe.ico</ApplicationIcon>
+    <Version>0.3.6-preview</Version>
+  </PropertyGroup>
+  <!-- Upgrading in place from v0.1 may leave the obsolete Playwright scanner.
+       Explicitly exclude it so v0.2+ never tries to compile that legacy file. -->
+  <ItemGroup>
+    <Compile Remove="BrowserScanner.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.8" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.8" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.8" />
+    <!-- A patched 0.21.x backport for the transitive Avalonia Linux D-Bus dependency. -->
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets/complete.wav" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets/photosafe.ico" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets/photosafe.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="ExtensionLinks.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

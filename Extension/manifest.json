@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "PhotoSafe Check Companion",
+  "description": "Read-only Google Photos search companion for the PhotoSafe Check desktop app.",
+  "version": "0.3.4",
+  "action": {
+    "default_title": "PhotoSafe Check",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://photos.google.com/*",
+    "http://127.0.0.1:37541/*"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://photos.google.com/*"
+      ],
+      "js": [
+        "search_ui.js",
+        "analyzer.js",
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
