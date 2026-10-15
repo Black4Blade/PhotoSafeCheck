@@ -27,7 +27,7 @@ internal static class Program
             Console.WriteLine("PhotoSafe Check standalone bundle verified.");
             return 0;
         }
-        StartupDiagnostics.Log("Starting PhotoSafe Check v0.3.6; OS=" + System.Runtime.InteropServices.RuntimeInformation.OSDescription);
+        StartupDiagnostics.Log("Starting PhotoSafe Check v0.4.0-rc.1; OS=" + System.Runtime.InteropServices.RuntimeInformation.OSDescription);
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             StartupDiagnostics.Report("Fatal unhandled exception", e.ExceptionObject as Exception);
         TaskScheduler.UnobservedTaskException += (_, e) =>

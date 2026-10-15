@@ -26,7 +26,7 @@ on:
           - artifacts_only
           - draft_release
       release_tag:
-        description: Version tag for manual draft release (e.g. v0.3.7; new tags only)
+        description: Version tag for manual draft release (e.g. v0.4.0-rc.1; new tags only)
         type: string
         required: false
         default: ''
@@ -59,7 +59,7 @@ jobs:
               if os.environ['PLATFORM'] != 'all':
                   raise SystemExit('Draft releases require All platforms; choose platform=all.')
               if not re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?', os.environ['RELEASE_TAG']):
-                  raise SystemExit('Enter a new release tag like v0.3.7 when selecting draft_release.')
+                  raise SystemExit('Enter a new release tag like v0.4.0-rc.1 when selecting draft_release.')
           all_targets = [
               {"platform": "windows", "os": "windows-latest", "rid": "win-x64"},
               {"platform": "linux", "os": "ubuntu-24.04", "rid": "linux-x64"},
@@ -110,6 +110,13 @@ jobs:
 
       - name: Test Windows GUI subsystem verification
         run: python scripts/test_windows_gui_subsystem.py
+
+      - name: Check app version and release tag
+        shell: bash
+        env:
+          MANUAL_RELEASE_TAG: ${{ inputs.release_tag || '' }}
+          AFTER_BUILD: ${{ inputs.after_build || 'artifacts_only' }}
+        run: python scripts/verify_release_version.py
 
       - name: Restore app dependencies
         run: dotnet restore PhotoSafeCheck/PhotoSafeCheck.csproj
@@ -209,14 +216,18 @@ jobs:
               echo "Tag $TAG already exists. Use a fresh tag for manual release, or push that tag to trigger the tag-based workflow." >&2
               exit 1
             fi
+            RELEASE_FLAGS=()
+            if [[ "$TAG" == *-* ]]; then RELEASE_FLAGS+=(--prerelease); fi
             gh release create "$TAG" out/release/* \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
-              --draft --generate-notes --title "PhotoSafe Check $TAG"
+              --draft "${RELEASE_FLAGS[@]}" --generate-notes --title "PhotoSafe Check $TAG"
           else
             TAG="$GITHUB_REF_NAME"
+            RELEASE_FLAGS=()
+            if [[ "$TAG" == *-* ]]; then RELEASE_FLAGS+=(--prerelease); fi
             gh release create "$TAG" out/release/* \
               --repo "$GITHUB_REPOSITORY" \
               --verify-tag \
-              --draft --generate-notes --title "PhotoSafe Check $TAG"
+              --draft "${RELEASE_FLAGS[@]}" --generate-notes --title "PhotoSafe Check $TAG"
           fi
