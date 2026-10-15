@@ -79,7 +79,7 @@ public sealed class MainWindow : Window
 
     public MainWindow()
     {
-        Title = "PhotoSafe Check  ·  v0.3.6 Friendly Preview";
+        Title = "PhotoSafe Check  ·  v0.4.0-rc.1 Release Candidate";
         try
         {
             using var iconStream = BundledAssets.Open("photosafe.ico");
@@ -119,7 +119,7 @@ public sealed class MainWindow : Window
             "Possible match means Google Photos returned a related result. It does not verify the original file or image quality."));
         sidebar.Children.Add(SideNote("A SAFE PROMISE",
             "PhotoSafe Check never deletes, moves, edits or overwrites original photos. Staging creates new copies only."));
-        sidebar.Children.Add(Txt("v0.3.6 · Friendly preview", 11, B("#8297B1")));
+        sidebar.Children.Add(Txt("v0.4.0-rc.1 · Release candidate", 11, B("#8297B1")));
         sidebar.Children.Add(Txt(StoragePaths.IsPortable
             ? "Portable mode · progress in Data next to the app"
             : "Local mode · progress in application data",

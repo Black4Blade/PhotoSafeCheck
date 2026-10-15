@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "PhotoSafe Check Companion",
   "description": "Read-only Google Photos search companion for the PhotoSafe Check desktop app.",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "action": {
     "default_title": "PhotoSafe Check",
     "default_popup": "popup.html",
@@ -12,8 +12,7 @@
     }
   },
   "permissions": [
-    "storage",
-    "tabs"
+    "storage"
   ],
   "host_permissions": [
     "https://photos.google.com/*",

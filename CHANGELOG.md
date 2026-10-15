@@ -1,3 +1,19 @@
+## v0.4.0-rc.1 — Consolidated release candidate
+
+- Updated desktop package, startup log, title and sidebar to `v0.4.0-rc.1`.
+- Preserved the known-working browser companion v0.3.5 (reduced permissions), scan logic and optional safe copy/export.
+- Kept portable or local storage selection, connection status indicators, extension download options and icons.
+- GitHub Actions preserves single-executable releases (GUI subsystem on Windows) and pins Linux runners to Ubuntu 24.04.
+- Release creation remains draft-only; prerelease-tagged drafts are explicitly flagged as **Prerelease**.
+- Added a CI version/tag consistency check, release-candidate testing guide and release notes.
+- **Not a stable v1.0.0 release yet.** Real Windows/macOS/Linux runtime and scan tests are required.
+
+# Windows Release — Launch without console
+
+- Publish `win-x64` Release as `WinExe` so Windows starts only the UI, while normal `dotnet run` builds retain console diagnostics.
+- Fail Windows CI if the published EXE uses the console PE subsystem; add PE verification regression test.
+- No changes to extension, scanner, storage choice, or single-file portable packaging.
+
 ## Standalone release packaging update
 
 - GitHub desktop archives now contain **only the executable inside `PhotoSafeCheck/`**; no documentation, extension, configuration sidecars, or asset files.

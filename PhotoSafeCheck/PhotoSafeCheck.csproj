@@ -11,7 +11,7 @@
     <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
     <AssemblyName>PhotoSafeCheck</AssemblyName>
     <ApplicationIcon>Assets/photosafe.ico</ApplicationIcon>
-    <Version>0.3.6-preview</Version>
+    <Version>0.4.0-rc.1</Version>
   </PropertyGroup>
   <!-- Upgrading in place from v0.1 may leave the obsolete Playwright scanner.
        Explicitly exclude it so v0.2+ never tries to compile that legacy file. -->

@@ -25,5 +25,5 @@ test('full CSV export creates only new files, never overwrites', () => {
 test('extension popup has accessible controls and progress meter', () => {
   for (const id of ['pairing','connect','activate','pause','diagnostics','meter','status'])
     assert.match(popup, new RegExp(`id="${id}"`));
-  assert.equal(JSON.parse(pkg).version,'0.3.4');
+  assert.equal(JSON.parse(pkg).version,'0.3.5');
 });
