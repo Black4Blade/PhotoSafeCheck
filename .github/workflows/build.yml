@@ -1,0 +1,52 @@
+name: Cross-platform preview builds
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate-and-package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-arm64
+          - os: macos-latest
+            rid: osx-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test browser extension logic
+        run: node --test tests/*.test.js
+      - name: Build app
+        run: dotnet build PhotoSafeCheck/PhotoSafeCheck.csproj --configuration Release
+      - name: Create self-contained preview app
+        run: dotnet publish PhotoSafeCheck/PhotoSafeCheck.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o out/app
+      - name: Bundle companion and instructions
+        run: python scripts/package_preview.py --publish out/app --dest out/preview --rid ${{ matrix.rid }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PhotoSafeCheck-v0.3.5-${{ matrix.rid }}-preview
+          path: out/preview/
+          if-no-files-found: error
+
+      - name: Package extension for Chrome Web Store and GitHub Releases
+        if: matrix.rid == 'win-x64'
+        run: python scripts/package_extension.py --dest out/PhotoSafeCheck-extension-v0.3.4.zip
+      - uses: actions/upload-artifact@v4
+        if: matrix.rid == 'win-x64'
+        with:
+          name: PhotoSafeCheck-extension-v0.3.4-store-upload
+          path: out/PhotoSafeCheck-extension-v0.3.4.zip
+          if-no-files-found: error
