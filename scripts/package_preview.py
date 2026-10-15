@@ -1,6 +1,7 @@
-"""Bundle a locally published PhotoSafeCheck app with its browser companion.
+"""Stage ONLY the self-contained executable for a clean user download.
 
-This script does not sign or distribute builds. It only creates a preview folder.
+The separate browser extension is a different GitHub Release asset.
+The desktop app offers a first-run choice of Portable (app folder/Data) or Local.
 """
 import argparse
 import shutil
@@ -9,25 +10,22 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument('--publish', type=Path, required=True)
 parser.add_argument('--dest', type=Path, required=True)
-parser.add_argument('--rid', required=True)
+parser.add_argument('--rid', choices=('win-x64', 'linux-x64', 'osx-x64', 'osx-arm64'), required=True)
 args = parser.parse_args()
-root = Path(__file__).resolve().parents[1]
-assert args.publish.is_dir(), f'publish folder does not exist: {args.publish}'
-assert args.rid in {'win-x64', 'linux-x64', 'osx-arm64', 'osx-x64'}
-assert (args.publish / ('PhotoSafeCheck.exe' if args.rid == 'win-x64' else 'PhotoSafeCheck')).is_file(), 'App executable missing'
-if (args.publish / 'Data').exists():
-    raise SystemExit('Publish folder includes user Data; refusing to package private state.')
+exe_name = 'PhotoSafeCheck.exe' if args.rid.startswith('win-') else 'PhotoSafeCheck'
+source = args.publish / exe_name
+if not source.is_file():
+    raise SystemExit(f'Single-file executable missing: {source}')
+if (args.publish / 'Data').exists() or (args.publish / 'state.json').exists():
+    raise SystemExit('Publish directory contains private scan data; refusing to package.')
 if args.dest.exists():
-    raise SystemExit('Destination exists; refusing to overwrite. Choose a fresh destination.')
-args.dest.mkdir(parents=True)
-shutil.copytree(args.publish, args.dest / 'App')
-# Marker only suggests Portable in first-run chooser. It does not force the mode.
-# No Data directory or private state is shipped.
-(args.dest / 'App' / 'portable.mode').write_text(
-    'Suggested portable distribution; choose Portable or Local on first launch.\n',
-    encoding='utf-8')
-shutil.copytree(root / 'Extension', args.dest / 'Extension')
-for name in ('README.md', 'PORTABLE_GUIDE.md', 'SETUP_GUIDE.md', 'RELEASE_CHECKLIST.md', 'CHANGELOG.md', 'EXTENSION_DISTRIBUTION.md', 'STORAGE_MODES.md'):
-    shutil.copy2(root / name, args.dest / name)
-print('First launch asks user to choose Portable or Local. Portable suggests App/Data.')
-print(f'Preview created: {args.dest} ({args.rid}). Not signed or installer-packaged.')
+    raise SystemExit(f'Refusing to overwrite existing destination: {args.dest}')
+# The archive's ONE top-level folder holds only the executable. Do not add
+# runtime files, documentation, extension or private state here.
+folder = args.dest / 'PhotoSafeCheck'
+folder.mkdir(parents=True)
+target = folder / exe_name
+shutil.copy2(source, target)
+if args.rid.startswith(('linux-', 'osx-')):
+    target.chmod(target.stat().st_mode | 0o755)
+print(f'Staged standalone executable: {target}')

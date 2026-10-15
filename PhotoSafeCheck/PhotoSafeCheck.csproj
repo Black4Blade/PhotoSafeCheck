@@ -24,9 +24,10 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets/complete.wav" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Assets/photosafe.ico" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="Assets/photosafe.png" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="ExtensionLinks.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Ship images/sound/default links inside the single-file executable. -->
+    <EmbeddedResource Include="Assets/complete.wav" />
+    <EmbeddedResource Include="Assets/photosafe.ico" />
+    <EmbeddedResource Include="Assets/photosafe.png" />
+    <EmbeddedResource Include="ExtensionLinks.json" />
   </ItemGroup>
 </Project>

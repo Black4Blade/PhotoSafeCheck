@@ -23,8 +23,8 @@ internal sealed class StorageModeWindow : Window
         Background = new SolidColorBrush(Color.Parse("#101725"));
         try
         {
-            var icon = Path.Combine(AppContext.BaseDirectory, "Assets", "photosafe.ico");
-            if (File.Exists(icon)) Icon = new WindowIcon(icon);
+            using var iconStream = BundledAssets.Open("photosafe.ico");
+            if (iconStream is not null) Icon = new WindowIcon(iconStream);
         }
         catch { }
         var white = Brushes.White;
@@ -40,7 +40,7 @@ internal sealed class StorageModeWindow : Window
         local = new RadioButton { GroupName = "mode", Content = "Local — store data in my user profile", IsChecked = suggested == StorageMode.Local,
             Foreground = white, FontWeight = FontWeight.SemiBold };
         panel.Children.Add(portable);
-        panel.Children.Add(new TextBlock { Text = "Stores app data in App/Data next to the executable. Ideal for a USB drive or an app you can delete cleanly. The folder must be writable.",
+        panel.Children.Add(new TextBlock { Text = "Stores app data in Data next to the executable. Ideal for a USB drive or an app you can delete cleanly. The folder must be writable.",
             Foreground = muted, Margin = new Thickness(23, 0, 0, 2), TextWrapping = TextWrapping.Wrap });
         panel.Children.Add(local);
         panel.Children.Add(new TextBlock { Text = "Stores app data in your normal AppData (Windows) / application-data directory (Linux or macOS). Useful when the app folder is read-only. You can clean it later from inside the app.",

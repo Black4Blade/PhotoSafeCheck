@@ -15,13 +15,13 @@ PhotoSafe Check helps you find **possible gaps** between a local folder and Goog
 
 ## Install from a preview build (after GitHub Actions builds succeed)
 
-1. Download the artifact for your computer from the **Cross-platform preview builds** workflow:
+1. Download the artifact for your computer from the **Build PhotoSafe Check** workflow:
    - `win-x64`: Windows PC (x64)
    - `linux-x64`: most 64-bit Linux PCs
    - `osx-arm64`: Apple Silicon Macs
    - `osx-x64`: Intel Macs
 2. Unzip the artifact. Inside are `App/`, `Extension/` and this guide.
-3. Start `App/PhotoSafeCheck.exe` on Windows or `App/PhotoSafeCheck` on Linux/macOS. Linux may need `chmod +x App/PhotoSafeCheck`. On macOS, there is **not yet a notarized `.app` bundle**; unsigned preview restrictions may apply.
+3. Start `PhotoSafeCheck.exe` on Windows or `PhotoSafeCheck` on Linux/macOS. Linux may need `chmod +x App/PhotoSafeCheck`. On macOS, there is **not yet a notarized `.app` bundle**; unsigned preview restrictions may apply.
 4. Select a folder containing some test photos and click **Index local files**.
 5. Open Chrome or Edge, navigate to `chrome://extensions` or `edge://extensions`, enable **Developer mode**, click **Load unpacked**, and choose the extracted `Extension` folder.
 6. Go to https://photos.google.com and sign in as usual. The extension never handles your Google password.

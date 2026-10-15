@@ -1,3 +1,39 @@
+## Standalone release packaging update
+
+- GitHub desktop archives now contain **only the executable inside `PhotoSafeCheck/`**; no documentation, extension, configuration sidecars, or asset files.
+- Embedded desktop logo, window icon, completion chime and default GitHub Releases install link.
+- Desktop retains the first-run Portable vs Local choice. Portable mode keeps its own `Data/` beside the executable.
+- Separate Chrome/Edge extension artifact and installer instructions in the repository.
+- CI runs a no-GUI `--verify-bundle` self-check for assets and validates single-entry release archives.
+
+## GitHub Actions maintenance — Node.js 24 and manual draft releases
+
+- Updated GitHub-hosted build actions to Node.js 24-backed major versions:
+  checkout v5, setup-dotnet v5, setup-node v5, setup-python v6,
+  upload-artifact v6, and download-artifact v7.
+- Added optional `workflow_dispatch` mode `draft_release` plus a version tag input,
+  requiring all platforms, the default branch and a new version tag.
+- Normal manual workflows continue to upload build artifacts only; version-tag
+  pushes still prepare a draft release.
+- No changes to the PhotoSafe Check scanner, app data, or browser extension.
+
+## GitHub Actions: multi-platform portable build workflow
+
+- Added a manual platform chooser (all / Windows / Linux / macOS) and four native-runner build targets.
+- Builds self-contained desktop bundles, preserving Portable/Local first-run selection.
+- Uploads Windows ZIP, Linux tar.gz, Intel Mac tar.gz, Apple Silicon Mac tar.gz, and SHA-256 checksums.
+- Creates a **draft** GitHub Release for `v*` tags, requiring manual approval to publish.
+- Keeps the Chrome/Edge extension in each portable bundle and publishes the store ZIP separately.
+- Adds packaging safety checks that reject user App/Data and pairing/scan-history files.
+- No changes to scanning, original photo data, extension permissions or matching logic.
+
+# v0.3.6 — Reduced-permission extension test
+
+- Companion extension bumped to 0.3.5. Removed broad `tabs` permission.
+- Retains site-scoped Google Photos access, localhost bridge and `storage`.
+- No scanning, safety, or desktop application behavior changed.
+- Added permission audit and regression tests.
+
 ## v0.3.6 preview — User-selected storage modes
 
 - Added first-run Portable or Local mode chooser, with remember/ask-on-every-launch option.
